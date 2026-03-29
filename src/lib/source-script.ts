@@ -777,6 +777,52 @@ export function normalizeScriptSearchResults(input: {
   });
 }
 
+export function normalizeScriptRecommendResults(input: {
+  scriptKey: string;
+  scriptName: string;
+  result: any;
+  sources?: ScriptSourceDescriptor[];
+  defaultSourceId?: string;
+}) {
+  const list = Array.isArray(input.result?.list) ? input.result.list : [];
+  const sourceMap = new Map(
+    (input.sources || []).map((item) => [String(item.id), String(item.name)])
+  );
+  const fallbackSourceId = input.defaultSourceId || 'default';
+
+  return list.map((item: any) => {
+    const sourceId = String(
+      item?.sourceId || item?.source_id || item?.source || fallbackSourceId
+    );
+    const sourceName = String(
+      item?.sourceName ||
+        item?.source_name ||
+        sourceMap.get(sourceId) ||
+        sourceId
+    );
+
+    return {
+      id: String(item?.id || ''),
+      title: String(item?.title || ''),
+      poster: item?.poster || '',
+      episodes: Array.isArray(item?.episodes) ? item.episodes : [],
+      episodes_titles: Array.isArray(item?.episodes_titles)
+        ? item.episodes_titles
+        : [],
+      source: buildScriptSourceValue(input.scriptKey, sourceId),
+      source_name: `${input.scriptName} / ${sourceName}`,
+      year: item?.year || '',
+      desc: item?.desc || '',
+      type_name: item?.type_name || '',
+      douban_id: item?.douban_id || 0,
+      vod_remarks: item?.vod_remarks,
+      vod_total: item?.vod_total,
+      tmdb_id: item?.tmdb_id,
+      rating: item?.rating,
+    };
+  });
+}
+
 export function normalizeScriptDetailResult(input: {
   source: string;
   scriptKey: string;
