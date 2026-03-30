@@ -2,6 +2,7 @@
 
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import './globals.css';
 
@@ -254,6 +255,7 @@ export default async function RootLayout({
               </DownloadProvider>
             </WatchRoomProvider>
           </SiteProvider>
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
