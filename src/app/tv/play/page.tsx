@@ -17,16 +17,16 @@ import {
   SkipBack,
   SkipForward,
   SlidersHorizontal,
-  X,
   Volume2,
   VolumeX,
+  X,
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Suspense,
   type Dispatch,
   type FocusEvent,
   type SetStateAction,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -34,16 +34,6 @@ import {
   useState,
 } from 'react';
 
-import {
-  deleteFavorite,
-  generateStorageKey,
-  getAllPlayRecords,
-  getSkipConfig,
-  isFavorited,
-  saveFavorite,
-  savePlayRecord,
-} from '@/lib/db.client';
-import { SearchResult } from '@/lib/types';
 import {
   convertDanmakuFormat,
   getDanmakuById,
@@ -53,6 +43,17 @@ import {
   saveDanmakuDisplayState,
   searchAnime,
 } from '@/lib/danmaku/api';
+import {
+  deleteFavorite,
+  generateStorageKey,
+  getAllPlayRecords,
+  getSkipConfig,
+  isFavorited,
+  saveFavorite,
+  savePlayRecord,
+} from '@/lib/db.client';
+import { loadTVPlayerUpDownAction } from '@/lib/tv-preferences';
+import { SearchResult } from '@/lib/types';
 
 import TVNativeVideo from '@/components/tv/player/TVNativeVideo';
 import {
@@ -241,6 +242,7 @@ function TVPlayClient() {
   const [muted, setMuted] = useState(initialVolumeState.muted);
   const [volume, setVolume] = useState(initialVolumeState.volume);
   const [showVolumeHint, setShowVolumeHint] = useState(false);
+  const [upDownAction] = useState(loadTVPlayerUpDownAction);
   const [seekHint, setSeekHint] = useState<{
     current: number;
     duration: number;
@@ -324,7 +326,7 @@ function TVPlayClient() {
         setSources(data.sources);
         const maxIndex = Math.max(0, (data.detail.episodes?.length || 1) - 1);
         const explicitIndex = searchParams.has('index');
-        let safeIndex = Math.max(
+        const safeIndex = Math.max(
           0,
           Math.min(
             initialIndex || data.detail.initialEpisodeIndex || 0,
@@ -922,7 +924,11 @@ function TVPlayClient() {
         (event.key === 'ArrowUp' || event.key === 'ArrowDown')
       ) {
         event.preventDefault();
-        setVideoVolume(volume + (event.key === 'ArrowUp' ? 0.05 : -0.05));
+        if (upDownAction === 'volume') {
+          setVideoVolume(volume + (event.key === 'ArrowUp' ? 0.05 : -0.05));
+        } else {
+          revealPanel();
+        }
         return;
       }
 
@@ -958,6 +964,7 @@ function TVPlayClient() {
     showDetail,
     showEpisodes,
     showPanel,
+    upDownAction,
     volume,
   ]);
 
